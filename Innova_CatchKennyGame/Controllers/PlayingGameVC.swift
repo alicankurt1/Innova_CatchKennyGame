@@ -33,7 +33,7 @@ class PlayingGameVC: UIViewController {
     
     private let timeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Time: 20"
+        label.text = "Time: 15"
         label.textColor = .white
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 32.0)
@@ -144,7 +144,7 @@ class PlayingGameVC: UIViewController {
     // Start Game
     private func startGame(level: Float){
         score = 0
-        gameCount = 10
+        gameCount = 15
         timeLabel.text = "Time: \(gameCount)"
         scoreLabel.text = "Score: 0"
         timeTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDown), userInfo: nil, repeats: true)
