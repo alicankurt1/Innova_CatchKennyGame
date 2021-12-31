@@ -45,7 +45,7 @@ class PlayingGameVC: UIViewController {
         label.text = "Your Score: 0"
         label.textColor = .white
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 28.0)
+        label.font = UIFont.systemFont(ofSize: 23.0)
         label.layer.masksToBounds = true
         label.layer.cornerRadius = CGFloat(20.0)
         return label
@@ -56,7 +56,7 @@ class PlayingGameVC: UIViewController {
         label.text = "Best Score: 0"
         label.textColor = .cyan
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 30.0)
+        label.font = UIFont.systemFont(ofSize: 18.0)
         return label
     }()
     
@@ -97,6 +97,7 @@ class PlayingGameVC: UIViewController {
     private var score = 0
     private var choosenLevel = ""
     private var choosenLevelInt = 0
+    private var bestScore : ScoreTableModel?
     
     // MARK: ViewDidLoad
     override func viewDidLoad() {
@@ -123,6 +124,8 @@ class PlayingGameVC: UIViewController {
         let cartmanRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapCartman))
         kennyImageView.addGestureRecognizer(kennyRecognizer)
         cartmanImageView.addGestureRecognizer(cartmanRecognizer)
+        
+        
                 
         
         DispatchQueue.main.async {
@@ -141,12 +144,42 @@ class PlayingGameVC: UIViewController {
         tryAgainButton.frame = CGRect(x: screenWidth * 0.5 - screenWidth * 0.25, y: screenHeight * 0.5 - 25, width: screenWidth * 0.5, height: 50)
     }
     
+    private func getBestScore(){
+        CoreDataManager.shared.getScoresData {[weak self] result  in
+            switch result{
+            case .failure(let error):
+                print(error)
+            case .success(let scoreTable):
+                if var scoreArray = scoreTable as? [ScoreTableModel], !scoreTable.isEmpty{
+                    scoreArray.sort { (lhs:ScoreTableModel, rhs:ScoreTableModel) in
+                        return lhs.score > rhs.score
+                    }
+                    scoreArray.sort { (lhs:ScoreTableModel, rhs:ScoreTableModel) in
+                        return lhs.levelInt > rhs.levelInt
+                    }
+                    guard let bestScore = scoreArray.first! as? ScoreTableModel else{
+                        return
+                    }
+                    self?.bestScore = bestScore
+                }
+            }
+        }
+        
+    }
+    
     // Start Game
     private func startGame(level: Float){
+        getBestScore()
+        if let safeBestScore = bestScore{
+            bestScoreLabel.text = "Best Score: \(safeBestScore.allias) \(safeBestScore.score) \(safeBestScore.level)"
+        }else{
+            bestScoreLabel.text = "Best Score: 0"
+        }
+        
         score = 0
         gameCount = 15
         timeLabel.text = "Time: \(gameCount)"
-        scoreLabel.text = "Score: 0"
+        scoreLabel.text = "Your Score: 0"
         timeTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(countDown), userInfo: nil, repeats: true)
         kennyTimer = Timer.scheduledTimer(timeInterval: TimeInterval(level), target: self, selector: #selector(showKennyAndCartman), userInfo: nil, repeats: true)
         stopButton.isHidden = false
